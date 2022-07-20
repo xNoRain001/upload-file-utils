@@ -1,12 +1,12 @@
-const img2Base64 = img => {
+const file2Buffer = img => {
   return new Promise(resolve => {
     const fileReader = new FileReader()
 
-    fileReader.readAsDataURL(img)
+    fileReader.readAsArrayBuffer(img)
     fileReader.onload = function (e) {
       resolve(e.target.result)
     }
   })
 }
 
-export default img2Base64
+export default file2Buffer
