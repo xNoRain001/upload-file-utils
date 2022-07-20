@@ -36,6 +36,8 @@ const uploader = new Uploader()
  * @param {FileList} options.files - input表单中选中的文件
  * @param {string} options.url - 要上传到的服务器地址
  * @param {(string|number)} options.sucStatus - 服务器返回的上传成功状态码
+ * @param {boolean} [options.generateHash=false] - 是否根据文件内容生成唯一的
+ *  hash，用于文件去重，默认值为 false，使用本身的文件名。
  * @param {Function} options.beforeStart - 开始上传前的钩子
  * @param {Function} options.onProgress - 上传中的钩子，接收 loaded 和 total 两个
  *  参数，loaded 表示已上传的大小，total 表示文件的总大小。
