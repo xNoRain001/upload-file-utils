@@ -414,6 +414,10 @@
     return Constructor;
   }
 
+  function _readOnlyError(name) {
+    throw new TypeError("\"" + name + "\" is read-only");
+  }
+
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
   function unwrapExports (x) {
@@ -5731,7 +5735,11 @@
               spark = new sparkMd5.ArrayBuffer();
               spark.append(buffer);
               hash = spark.end();
-              return _context.abrupt("return", "".concat(hash).concat(suffix));
+              return _context.abrupt("return", {
+                hash: hash,
+                suffix: suffix,
+                filename: "".concat(hash).concat(suffix)
+              });
 
             case 8:
             case "end":
@@ -5745,6 +5753,72 @@
       return _ref.apply(this, arguments);
     };
   }();
+
+  var getUploadedSlices = /*#__PURE__*/function () {
+    var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(api, hash, name) {
+      var _yield$request, data, uploadedSlices;
+
+      return _regeneratorRuntime().wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              _context.next = 2;
+              return request({
+                url: api,
+                method: 'GET',
+                params: {
+                  HASH: hash
+                }
+              });
+
+            case 2:
+              _yield$request = _context.sent;
+              data = _yield$request.data;
+              uploadedSlices = data[name];
+              return _context.abrupt("return", uploadedSlices);
+
+            case 6:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee);
+    }));
+
+    return function getUploadedSlices(_x, _x2, _x3) {
+      return _ref.apply(this, arguments);
+    };
+  }();
+
+  var genUploadedSlicesMap = function genUploadedSlicesMap(uploadedSlices) {
+    var uploadedSlicesMap = {};
+
+    for (var i = 0, l = uploadedSlices.length; i < l; i++) {
+      uploadedSlicesMap[uploadedSlices[i]] = true;
+    }
+
+    return uploadedSlicesMap;
+  };
+
+  var formatSliceConfig = function formatSliceConfig(file, sliceSize, sliceLimit) {
+    var size = file.size;
+    var sliceCount = Math.ceil(size / sliceSize);
+
+    if (sliceCount > sliceLimit) {
+      // format slice size
+      sliceSize = size / sliceLimit;
+      return {
+        sliceSize: sliceSize,
+        sliceLimit: sliceLimit // slice count equal slice limit
+
+      };
+    }
+
+    return {
+      sliceSize: sliceSize,
+      sliceCount: sliceCount
+    };
+  };
 
   var Uploader = /*#__PURE__*/function () {
     function Uploader() {
@@ -5801,7 +5875,7 @@
                             return genHash(file);
 
                           case 4:
-                            _context.t0 = _context.sent;
+                            _context.t0 = _context.sent.filename;
                             _context.next = 8;
                             break;
 
@@ -5935,7 +6009,7 @@
                             return genHash(file);
 
                           case 4:
-                            _context3.t0 = _context3.sent;
+                            _context3.t0 = _context3.sent.filename;
                             _context3.next = 8;
                             break;
 
@@ -6028,6 +6102,140 @@
         }
 
         return base64;
+      }()
+    }, {
+      key: "slice",
+      value: function () {
+        var _slice = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+          var options,
+              files,
+              url,
+              api,
+              name,
+              sliceLimit,
+              _options$sliceSize,
+              sliceSize,
+              _options$onProgress3,
+              onProgress,
+              file,
+              _yield$genHash,
+              hash,
+              suffix,
+              uploadedSlices,
+              uploadedSlicesMap,
+              slices,
+              index,
+              _slice2,
+              _filename,
+              tasks,
+              _loop3,
+              i,
+              l,
+              _args5 = arguments;
+
+          return _regeneratorRuntime().wrap(function _callee3$(_context5) {
+            while (1) {
+              switch (_context5.prev = _context5.next) {
+                case 0:
+                  options = _args5.length > 0 && _args5[0] !== undefined ? _args5[0] : {};
+                  files = options.files, url = options.url, api = options.api, name = options.name, options.sucStatus, options.generateHash, sliceLimit = options.sliceLimit, _options$sliceSize = options.sliceSize, sliceSize = _options$sliceSize === void 0 ? 1 * 1024 * 1024 : _options$sliceSize, options.beforeStart, _options$onProgress3 = options.onProgress, onProgress = _options$onProgress3 === void 0 ? noop : _options$onProgress3, options.finished, options.failed, options["finally"];
+                  file = files[0];
+                  _context5.next = 5;
+                  return genHash(file);
+
+                case 5:
+                  _yield$genHash = _context5.sent;
+                  hash = _yield$genHash.hash;
+                  suffix = _yield$genHash.suffix;
+                  // get uploaded slices by hash
+                  uploadedSlices = getUploadedSlices(api, hash, name); // generate uploaded slices map for exclude uploaded slices
+
+                  uploadedSlicesMap = genUploadedSlicesMap(uploadedSlices) // format slice size and slice count because slice count may be greater
+                  // than slice limit
+                  ((formatSliceConfig(file, sliceSize, sliceLimit), _readOnlyError("sliceSize"))); // slices to be uploaded 
+
+                  slices = []; // generate slices
+
+                  index = 0;
+
+                case 12:
+                  if (!(index < sliceCount)) {
+                    _context5.next = 22;
+                    break;
+                  }
+
+                  _slice2 = file.slice(sliceSize * index, sliceSize * (index + 1));
+                  _filename = "".concat(hash, "_").concat(index + 1).concat(suffix);
+                  index++; // Slices that already exist on the server
+
+                  if (!uploadedSlicesMap[_filename]) {
+                    _context5.next = 19;
+                    break;
+                  }
+
+                  onProgress();
+                  return _context5.abrupt("return");
+
+                case 19:
+                  slices.push({
+                    file: _slice2,
+                    filename: _filename
+                  });
+                  _context5.next = 12;
+                  break;
+
+                case 22:
+                  tasks = [];
+
+                  _loop3 = function _loop3(i, l) {
+                    var _slices$i = slices[i],
+                        file = _slices$i.file,
+                        filename = _slices$i.filename;
+                    var formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('filename', filename);
+                    tasks.push(function () {
+                      request({
+                        url: url,
+                        method: 'POST',
+                        data: formData
+                      }).then(function (response) {
+                        if (response.status == 200) {
+                          onProgress();
+                          return Promise.resolve(response);
+                        }
+
+                        return Promise.reject(response);
+                      })["catch"](function (e) {
+                        return Promise.reject(e);
+                      });
+                    });
+                  };
+
+                  for (i = 0, l = slices.length; i < l; i++) {
+                    _loop3(i, l);
+                  }
+
+                  console.log(tasks, '@'); // beforeStart()
+                  // Promise
+                  //   .all(tasks.map(task => task()))
+                  //   .then(value => finished(value))
+                  //   .catch(reason => failed(reason))
+                  //   .finally(() => last())
+
+                case 26:
+                case "end":
+                  return _context5.stop();
+              }
+            }
+          }, _callee3);
+        }));
+
+        function slice() {
+          return _slice.apply(this, arguments);
+        }
+
+        return slice;
       }()
     }]);
 

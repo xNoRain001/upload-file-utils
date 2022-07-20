@@ -9,7 +9,11 @@ const genHash = async file => {
   spark.append(buffer)
   const hash = spark.end()
 
-  return `${ hash }${ suffix }`
+  return {
+    hash,
+    suffix,
+    filename: `${ hash }${ suffix }`
+  }
 }
 
 export default genHash

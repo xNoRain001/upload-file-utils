@@ -1,5 +1,5 @@
 import request from './request/index'
-import { noop, img2Base64, genHash } from './utils'
+import { noop, img2Base64, genHash, getUploadedSlices, genUploadedSlicesMap, formatSliceConfig } from './utils'
 
 class Uploader {
   async formData (options = {}) {
@@ -19,7 +19,7 @@ class Uploader {
     for (let i = 0, l = files.length; i < l; i++) {
       const file = files[i]
       const filename = generateHash
-        ? await genHash(file)
+        ? (await genHash(file)).filename
         : file.name
       const formData = new FormData()
   
@@ -77,7 +77,7 @@ class Uploader {
     for (let i = 0, l = files.length; i < l; i++) {
       const file = files[i]
       const filename = generateHash
-        ? await genHash(file)
+        ? (await genHash(file)).filename
         : file.name
       const base64 = await img2Base64(file)
       const task = () => {
@@ -121,6 +121,101 @@ class Uploader {
       .then(value => finished(value))
       .catch(reason => failed(reason))
       .finally(() => last())
+  }
+
+  async slice (options = {}) {
+    const {
+      files,
+      url,
+      api,
+      name,
+      sucStatus,
+      generateHash = false,
+      sliceLimit,
+      sliceSize = 1 * 1024 * 1024,
+      beforeStart = noop, 
+      onProgress = noop,
+      finished = noop, 
+      failed = noop,
+      finally: last = noop
+    } = options
+    const file = files[0]
+
+    const { hash, suffix } = await genHash(file)
+
+    // get uploaded slices by hash
+    const uploadedSlices = getUploadedSlices(api, hash, name)
+
+    // generate uploaded slices map for exclude uploaded slices
+    const uploadedSlicesMap = genUploadedSlicesMap(uploadedSlices)
+
+    // format slice size and slice count because slice count may be greater
+    // than slice limit
+    ({ sliceSize, sliceCount } = formatSliceConfig(file, sliceSize, sliceLimit))
+
+    // slices to be uploaded 
+    const slices = []
+
+    // generate slices
+    let index = 0
+    while (index < sliceCount) {
+      const slice = file.slice(sliceSize * index, sliceSize * (index + 1))
+      const filename =`${ hash }_${ index + 1 }${ suffix }`
+      
+      index++
+
+      // Slices that already exist on the server
+      if (uploadedSlicesMap[filename]) {
+        onProgress()
+
+        return
+      }
+
+
+      slices.push({
+        file: slice,
+        filename
+      })
+    }
+
+    const tasks = []
+
+    for (let i = 0, l = slices.length; i < l; i++) {
+      const { file, filename } = slices[i]
+      const formData = new FormData()
+
+      formData.append('file', file)
+      formData.append('filename', filename)
+
+      tasks.push(() => {
+        request({
+          url,
+          method: 'POST',
+          data: formData
+        })
+          .then(response => {
+            if (response.status == 200) {
+              onProgress()
+  
+              return Promise.resolve(response)
+            }
+  
+            return Promise.reject(response)
+          })
+          .catch(e => Promise.reject(e))
+      })
+    }
+
+    console.log(tasks, '@')
+
+
+    // beforeStart()
+
+    // Promise
+    //   .all(tasks.map(task => task()))
+    //   .then(value => finished(value))
+    //   .catch(reason => failed(reason))
+    //   .finally(() => last())
   }
 }
 

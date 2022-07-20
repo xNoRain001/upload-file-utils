@@ -51,6 +51,7 @@ this.$refs.uploadFileBtn.addEventListener('change', (e) => {
   uploader.formData({
     url: 'http://127.0.0.1:3000/upload-file',
     sucStatus: 200,
+    generateHash: false,
     files: e.target.files,
     beforeStart () {
       console.log('beforeStart')
