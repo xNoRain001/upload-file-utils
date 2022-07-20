@@ -1,6 +1,6 @@
 {
   "name": "upload-file-utils",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Upload file utils",
   "keywords": [
     "upload-file-utils"
@@ -16,7 +16,8 @@
   },
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.27.2"
+    "axios": "^0.27.2",
+    "qs": "^6.11.0"
   },
   "devDependencies": {
     "@babel/core": "^7.18.6",
