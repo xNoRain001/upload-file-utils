@@ -2,12 +2,13 @@ import request from './request/index'
 import { noop, img2Base64 } from './utils'
 
 class Uploader {
-  formdata (options = {}) {
+  formData (options = {}) {
     const {
       files,
       url,
       sucStatus,
-      beforeStart = noop, 
+      beforeStart = noop,
+      onProgress = noop,
       finished = noop, 
       failed = noop,
       finally: last = noop
@@ -16,10 +17,6 @@ class Uploader {
 
     for (let i = 0, l = files.length; i < l; i++) {
       const file = files[i]
-      const params = new URLSearchParams()
-
-      params.append('file', file)
-
       const formData = new FormData()
   
       formData.append('file', file)
@@ -30,7 +27,12 @@ class Uploader {
         return request({
           url, 
           method: 'POST',
-          data: formData
+          data: formData,
+          onUploadProgress (e) {
+            const { loaded, total } = e
+
+            onProgress(loaded, total)
+          },
         })
           .then(response => {
             if (response.status == sucStatus) {
@@ -60,6 +62,7 @@ class Uploader {
       url,
       sucStatus,
       beforeStart = noop, 
+      onProgress = noop,
       finished = noop, 
       failed = noop,
       finally: last = noop
@@ -76,7 +79,17 @@ class Uploader {
           data: {
             file: encodeURIComponent(base64),
             filename: file.name
-          }
+          },
+          headers: {
+            post: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            }
+          },
+          onUploadProgress (e) {
+            const { loaded, total } = e
+
+            onProgress(loaded, total)
+          },
         })
           .then(response => {
             if (response.status == sucStatus) {

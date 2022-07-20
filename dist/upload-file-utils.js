@@ -4958,6 +4958,7 @@
   };
 
   var request = axios$1.create();
+  request.defaults.headers.post['Content-Type'] = 'multipart/form-data';
 
   request.defaults.transformRequest = function (data, headers) {
     if (headers.post['Content-Type'] === 'application/x-www-form-urlencoded') {
@@ -5003,14 +5004,16 @@
     }
 
     _createClass(Uploader, [{
-      key: "formdata",
-      value: function formdata() {
+      key: "formData",
+      value: function formData() {
         var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
         var files = options.files,
             url = options.url,
             sucStatus = options.sucStatus,
             _options$beforeStart = options.beforeStart,
             beforeStart = _options$beforeStart === void 0 ? noop : _options$beforeStart,
+            _options$onProgress = options.onProgress,
+            onProgress = _options$onProgress === void 0 ? noop : _options$onProgress,
             _options$finished = options.finished,
             finished = _options$finished === void 0 ? noop : _options$finished,
             _options$failed = options.failed,
@@ -5021,8 +5024,6 @@
 
         var _loop = function _loop(i, l) {
           var file = files[i];
-          var params = new URLSearchParams();
-          params.append('file', file);
           var formData = new FormData();
           formData.append('file', file);
           formData.append('filename', file.name); // create task
@@ -5031,7 +5032,12 @@
             return request({
               url: url,
               method: 'POST',
-              data: formData
+              data: formData,
+              onUploadProgress: function onUploadProgress(e) {
+                var loaded = e.loaded,
+                    total = e.total;
+                onProgress(loaded, total);
+              }
             }).then(function (response) {
               if (response.status == sucStatus) {
                 return Promise.resolve(response);
@@ -5071,6 +5077,8 @@
               sucStatus,
               _options$beforeStart2,
               beforeStart,
+              _options$onProgress2,
+              onProgress,
               _options$finished2,
               finished,
               _options$failed2,
@@ -5088,7 +5096,7 @@
               switch (_context2.prev = _context2.next) {
                 case 0:
                   options = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : {};
-                  files = options.files, url = options.url, sucStatus = options.sucStatus, _options$beforeStart2 = options.beforeStart, beforeStart = _options$beforeStart2 === void 0 ? noop : _options$beforeStart2, _options$finished2 = options.finished, finished = _options$finished2 === void 0 ? noop : _options$finished2, _options$failed2 = options.failed, failed = _options$failed2 === void 0 ? noop : _options$failed2, _options$finally2 = options["finally"], last = _options$finally2 === void 0 ? noop : _options$finally2;
+                  files = options.files, url = options.url, sucStatus = options.sucStatus, _options$beforeStart2 = options.beforeStart, beforeStart = _options$beforeStart2 === void 0 ? noop : _options$beforeStart2, _options$onProgress2 = options.onProgress, onProgress = _options$onProgress2 === void 0 ? noop : _options$onProgress2, _options$finished2 = options.finished, finished = _options$finished2 === void 0 ? noop : _options$finished2, _options$failed2 = options.failed, failed = _options$failed2 === void 0 ? noop : _options$failed2, _options$finally2 = options["finally"], last = _options$finally2 === void 0 ? noop : _options$finally2;
                   tasks = [];
                   _loop2 = /*#__PURE__*/_regeneratorRuntime().mark(function _loop2(i, l) {
                     var file, base64, task;
@@ -5110,6 +5118,16 @@
                                 data: {
                                   file: encodeURIComponent(base64),
                                   filename: file.name
+                                },
+                                headers: {
+                                  post: {
+                                    'Content-Type': 'application/x-www-form-urlencoded'
+                                  }
+                                },
+                                onUploadProgress: function onUploadProgress(e) {
+                                  var loaded = e.loaded,
+                                      total = e.total;
+                                  onProgress(loaded, total);
                                 }
                               }).then(function (response) {
                                 if (response.status == sucStatus) {
