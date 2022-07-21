@@ -1,6 +1,6 @@
 import merge from "./merge"
 
-const start = (
+const startSlice = (
   tasks, mergeAPI, hash, sliceCount, sucStatus,
   finished, failed, last
 ) => {
@@ -23,4 +23,4 @@ const start = (
     .finally(() => last())
 }
 
-export default start
+export default startSlice

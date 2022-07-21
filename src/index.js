@@ -1,7 +1,5 @@
-import request from './request'
 import { 
   noop, 
-  img2Base64, 
   genHash
 } from './utils'
 import { 
@@ -10,12 +8,16 @@ import {
   formatSliceConfig, 
   genSlices,
   genSliceTasks,
-  start,
+  startSlice,
   merge
 } from './slice'
-import { genFormDataTasks, startFormData } from './form-data'
+import { 
+  genFormDataTasks, 
+  startFormData 
+} from './form-data'
 import startBase64 from './base64/start-base64'
 import { genBase64Tasks } from './base64'
+import request from './request'
 
 class Uploader {
   async formData (options = {}) {
@@ -112,7 +114,7 @@ class Uploader {
     if (tasks.length) {
 
       // start upload
-      start(
+      startSlice(
         tasks, mergeAPI, hash, formattedSliceCount, sucStatus,
         finished, failed, last
       )

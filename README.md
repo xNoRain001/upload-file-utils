@@ -112,7 +112,7 @@ this.$refs.uploadFileBtn.addEventListener('click', () => {
 
 ```javascript
 /**
- * 切片上传和断点续传。
+ * 切片上传和断点续传，以 FormData 形式进行上传。
  * 切片上传：每个切片将被命名为 哈希值_递增的索引.后缀 的形式，如：
  * f41c5454c30ea37b8dcab8af6698872d_1.webp，服务器根据 hash 值创建临时目录保存切
  * 片，当所有切片上传完成时会向 mergeAPI 发 POST 请求，载荷中携带 hash 值和应有的切

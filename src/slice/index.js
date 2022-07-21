@@ -3,7 +3,7 @@ import genUploadedSlicesMap from "./gen-uploaded-slices-map"
 import genSlices from "./gen-slices"
 import genSliceTasks from "./gen-slice-tasks"
 import formatSliceConfig from "./format-slice-config"
-import start from "./start"
+import startSlice from "./start-slice"
 import merge from "./merge"
 
 export {
@@ -12,6 +12,6 @@ export {
   genSlices,
   genSliceTasks,
   formatSliceConfig,
-  start,
+  startSlice,
   merge
 }
