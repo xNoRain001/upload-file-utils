@@ -1,6 +1,6 @@
 import request from "../request"
 
-const genTasks = (slices, url, sucStatus) => {
+const genSliceTasks = (slices, url, sucStatus) => {
   const tasks = []
 
   for (let i = 0, l = slices.length; i < l; i++) {
@@ -36,4 +36,4 @@ const genTasks = (slices, url, sucStatus) => {
   return tasks
 }
 
-export default genTasks
+export default genSliceTasks

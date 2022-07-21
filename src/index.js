@@ -9,10 +9,13 @@ import {
   genUploadedSlicesMap, 
   formatSliceConfig, 
   genSlices,
-  genTasks,
+  genSliceTasks,
   start,
   merge
 } from './slice'
+import { genFormDataTasks, startFormData } from './form-data'
+import startBase64 from './base64/start-base64'
+import { genBase64Tasks } from './base64'
 
 class Uploader {
   async formData (options = {}) {
@@ -20,58 +23,22 @@ class Uploader {
       files,
       url,
       sucStatus,
-      generateHash = false,
+      isGenHash = false,
       beforeStart = noop,
       onProgress = noop,
       finished = noop, 
       failed = noop,
       finally: last = noop
     } = options
-    const tasks = []
 
-    for (let i = 0, l = files.length; i < l; i++) {
-      const file = files[i]
-      const filename = generateHash
-        ? (await genHash(file)).filename
-        : file.name
-      const formData = new FormData()
-  
-      formData.append('file', file)
-      formData.append('filename', filename)
-
-      // create task
-      const task = () => {
-        return request({
-          url, 
-          method: 'POST',
-          data: formData,
-          onUploadProgress (e) {
-            const { loaded, total } = e
-            const value = (loaded / total).toFixed(2)
-
-            onProgress(value)
-          },
-        })
-          .then(response => {
-            if (response.status == sucStatus) {
-              return Promise.resolve(response)
-            }
-              
-            return Promise.reject(response)
-          })
-          .catch(e => Promise.reject(e))
-      }
-
-      tasks.push(task)
-    }
+    const tasks = await genFormDataTasks(
+      files, url, isGenHash, sucStatus, onProgress
+    )
 
     beforeStart()
 
-    Promise
-      .all(tasks.map(task => task()))
-      .then(value => finished(value))
-      .catch(reason => failed(reason))
-      .finally(() => last())
+    // start uplaod
+    startFormData(tasks, finished, failed, last)
   }
 
   async base64 (options = {}) {
@@ -79,63 +46,24 @@ class Uploader {
       files,
       url,
       sucStatus,
-      generateHash = false,
+      isGenHash = false,
       beforeStart = noop, 
       onProgress = noop,
       finished = noop, 
       failed = noop,
       finally: last = noop
     } = options
-    const tasks = []
-
-    for (let i = 0, l = files.length; i < l; i++) {
-      const file = files[i]
-      const filename = generateHash
-        ? (await genHash(file)).filename
-        : file.name
-      const base64 = await img2Base64(file)
-      const task = () => {
-        return request({
-          url,
-          method: 'POST',
-          data: {
-            file: encodeURIComponent(base64),
-            filename
-          },
-          headers: {
-            post: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            }
-          },
-          onUploadProgress (e) {
-            const { loaded, total } = e
-            const value = (loaded / total).toFixed(2)
-
-            onProgress(value)
-          },
-        })
-          .then(response => {
-            if (response.status == sucStatus) {
-              return Promise.resolve(response)
-            }
-              
-            return Promise.reject(response)
-          })
-          .catch(e => {
-            Promise.reject(e)
-          })
-      }
-
-      tasks.push(task)
-    }
+    
+    const tasks = await genBase64Tasks(
+      files, url, isGenHash, sucStatus, onProgress
+    )
 
     beforeStart()
 
-    Promise
-      .all(tasks.map(task => task()))
-      .then(value => finished(value))
-      .catch(reason => failed(reason))
-      .finally(() => last())
+    console.log(tasks)
+
+    // start upload
+    startBase64(tasks, finished, failed, last)
   }
 
   async slice (options = {}) {
@@ -177,7 +105,7 @@ class Uploader {
     )
 
     // generate tasks
-    const tasks = genTasks(slices, url, sucStatus)
+    const tasks = genSliceTasks(slices, url, sucStatus)
 
     beforeStart()
 

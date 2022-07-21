@@ -5835,7 +5835,7 @@
     return slices;
   };
 
-  var genTasks = function genTasks(slices, url, sucStatus) {
+  var genSliceTasks = function genSliceTasks(slices, url, sucStatus) {
     var tasks = [];
 
     var _loop = function _loop(i, l) {
@@ -6032,6 +6032,310 @@
     });
   };
 
+  var genFormDataTasks = /*#__PURE__*/function () {
+    var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(files, url, isGenHash, sucStatus, onProgress) {
+      var tasks, _loop, i, l;
+
+      return _regeneratorRuntime().wrap(function _callee2$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              tasks = [];
+              _loop = /*#__PURE__*/_regeneratorRuntime().mark(function _loop(i, l) {
+                var file, filename, formData, task;
+                return _regeneratorRuntime().wrap(function _loop$(_context2) {
+                  while (1) {
+                    switch (_context2.prev = _context2.next) {
+                      case 0:
+                        file = files[i];
+
+                        if (!isGenHash) {
+                          _context2.next = 7;
+                          break;
+                        }
+
+                        _context2.next = 4;
+                        return genHash(file);
+
+                      case 4:
+                        _context2.t0 = _context2.sent.filename;
+                        _context2.next = 8;
+                        break;
+
+                      case 7:
+                        _context2.t0 = file.name;
+
+                      case 8:
+                        filename = _context2.t0;
+                        formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('filename', filename);
+
+                        task = function task() {
+                          return new Promise( /*#__PURE__*/function () {
+                            var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(resolve, reject) {
+                              var response;
+                              return _regeneratorRuntime().wrap(function _callee$(_context) {
+                                while (1) {
+                                  switch (_context.prev = _context.next) {
+                                    case 0:
+                                      _context.prev = 0;
+                                      _context.next = 3;
+                                      return request({
+                                        url: url,
+                                        method: 'POST',
+                                        data: formData,
+                                        onUploadProgress: function onUploadProgress(e) {
+                                          var loaded = e.loaded,
+                                              total = e.total;
+                                          onProgress(loaded, total);
+                                        }
+                                      });
+
+                                    case 3:
+                                      response = _context.sent;
+
+                                      if (!(response.status == sucStatus)) {
+                                        _context.next = 7;
+                                        break;
+                                      }
+
+                                      resolve(response);
+                                      return _context.abrupt("return");
+
+                                    case 7:
+                                      reject(response);
+                                      _context.next = 13;
+                                      break;
+
+                                    case 10:
+                                      _context.prev = 10;
+                                      _context.t0 = _context["catch"](0);
+                                      reject(_context.t0);
+
+                                    case 13:
+                                    case "end":
+                                      return _context.stop();
+                                  }
+                                }
+                              }, _callee, null, [[0, 10]]);
+                            }));
+
+                            return function (_x6, _x7) {
+                              return _ref2.apply(this, arguments);
+                            };
+                          }());
+                        };
+
+                        tasks.push(task);
+
+                      case 14:
+                      case "end":
+                        return _context2.stop();
+                    }
+                  }
+                }, _loop);
+              });
+              i = 0, l = files.length;
+
+            case 3:
+              if (!(i < l)) {
+                _context3.next = 8;
+                break;
+              }
+
+              return _context3.delegateYield(_loop(i, l), "t0", 5);
+
+            case 5:
+              i++;
+              _context3.next = 3;
+              break;
+
+            case 8:
+              return _context3.abrupt("return", Promise.resolve(tasks));
+
+            case 9:
+            case "end":
+              return _context3.stop();
+          }
+        }
+      }, _callee2);
+    }));
+
+    return function genFormDataTasks(_x, _x2, _x3, _x4, _x5) {
+      return _ref.apply(this, arguments);
+    };
+  }();
+
+  var startFormData = function startFormData(tasks, finished, failed, last) {
+    Promise.all(tasks.map(function (task) {
+      return task();
+    })).then(function (value) {
+      return finished(value);
+    })["catch"](function (reason) {
+      return failed(reason);
+    })["finally"](function () {
+      return last();
+    });
+  };
+
+  var startBase64 = function startBase64(tasks, finished, failed, last) {
+    Promise.all(tasks.map(function (task) {
+      return task();
+    })).then(function (value) {
+      return finished(value);
+    })["catch"](function (reason) {
+      return failed(reason);
+    })["finally"](function () {
+      return last();
+    });
+  };
+
+  var genBase64Tasks = /*#__PURE__*/function () {
+    var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(files, url, isGenHash, sucStatus, onProgress) {
+      var tasks, _loop, i, l;
+
+      return _regeneratorRuntime().wrap(function _callee2$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              tasks = [];
+              _loop = /*#__PURE__*/_regeneratorRuntime().mark(function _loop(i, l) {
+                var file, filename, base64, task;
+                return _regeneratorRuntime().wrap(function _loop$(_context2) {
+                  while (1) {
+                    switch (_context2.prev = _context2.next) {
+                      case 0:
+                        file = files[i];
+
+                        if (!isGenHash) {
+                          _context2.next = 7;
+                          break;
+                        }
+
+                        _context2.next = 4;
+                        return genHash(file);
+
+                      case 4:
+                        _context2.t0 = _context2.sent.filename;
+                        _context2.next = 8;
+                        break;
+
+                      case 7:
+                        _context2.t0 = file.name;
+
+                      case 8:
+                        filename = _context2.t0;
+                        _context2.next = 11;
+                        return img2Base64(file);
+
+                      case 11:
+                        base64 = _context2.sent;
+
+                        task = function task() {
+                          return new Promise( /*#__PURE__*/function () {
+                            var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(resolve, reject) {
+                              var response;
+                              return _regeneratorRuntime().wrap(function _callee$(_context) {
+                                while (1) {
+                                  switch (_context.prev = _context.next) {
+                                    case 0:
+                                      _context.prev = 0;
+                                      _context.next = 3;
+                                      return request({
+                                        url: url,
+                                        method: 'POST',
+                                        data: {
+                                          file: encodeURIComponent(base64),
+                                          filename: filename
+                                        },
+                                        headers: {
+                                          post: {
+                                            'Content-Type': 'application/x-www-form-urlencoded'
+                                          }
+                                        },
+                                        onUploadProgress: function onUploadProgress(e) {
+                                          var loaded = e.loaded,
+                                              total = e.total;
+                                          onProgress(loaded, total);
+                                        }
+                                      });
+
+                                    case 3:
+                                      response = _context.sent;
+
+                                      if (!(response.status == sucStatus)) {
+                                        _context.next = 7;
+                                        break;
+                                      }
+
+                                      resolve(response);
+                                      return _context.abrupt("return");
+
+                                    case 7:
+                                      reject(response);
+                                      _context.next = 13;
+                                      break;
+
+                                    case 10:
+                                      _context.prev = 10;
+                                      _context.t0 = _context["catch"](0);
+                                      reject(_context.t0);
+
+                                    case 13:
+                                    case "end":
+                                      return _context.stop();
+                                  }
+                                }
+                              }, _callee, null, [[0, 10]]);
+                            }));
+
+                            return function (_x6, _x7) {
+                              return _ref2.apply(this, arguments);
+                            };
+                          }());
+                        };
+
+                        tasks.push(task);
+
+                      case 14:
+                      case "end":
+                        return _context2.stop();
+                    }
+                  }
+                }, _loop);
+              });
+              i = 0, l = files.length;
+
+            case 3:
+              if (!(i < l)) {
+                _context3.next = 8;
+                break;
+              }
+
+              return _context3.delegateYield(_loop(i, l), "t0", 5);
+
+            case 5:
+              i++;
+              _context3.next = 3;
+              break;
+
+            case 8:
+              return _context3.abrupt("return", Promise.resolve(tasks));
+
+            case 9:
+            case "end":
+              return _context3.stop();
+          }
+        }
+      }, _callee2);
+    }));
+
+    return function genBase64Tasks(_x, _x2, _x3, _x4, _x5) {
+      return _ref.apply(this, arguments);
+    };
+  }();
+
   var Uploader = /*#__PURE__*/function () {
     function Uploader() {
       _classCallCheck(this, Uploader);
@@ -6045,8 +6349,8 @@
               files,
               url,
               sucStatus,
-              _options$generateHash,
-              generateHash,
+              _options$isGenHash,
+              isGenHash,
               _options$beforeStart,
               beforeStart,
               _options$onProgress,
@@ -6058,109 +6362,26 @@
               _options$finally,
               last,
               tasks,
-              _loop,
-              i,
-              l,
-              _args2 = arguments;
+              _args = arguments;
 
-          return _regeneratorRuntime().wrap(function _callee$(_context2) {
+          return _regeneratorRuntime().wrap(function _callee$(_context) {
             while (1) {
-              switch (_context2.prev = _context2.next) {
+              switch (_context.prev = _context.next) {
                 case 0:
-                  options = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : {};
-                  files = options.files, url = options.url, sucStatus = options.sucStatus, _options$generateHash = options.generateHash, generateHash = _options$generateHash === void 0 ? false : _options$generateHash, _options$beforeStart = options.beforeStart, beforeStart = _options$beforeStart === void 0 ? noop : _options$beforeStart, _options$onProgress = options.onProgress, onProgress = _options$onProgress === void 0 ? noop : _options$onProgress, _options$finished = options.finished, finished = _options$finished === void 0 ? noop : _options$finished, _options$failed = options.failed, failed = _options$failed === void 0 ? noop : _options$failed, _options$finally = options["finally"], last = _options$finally === void 0 ? noop : _options$finally;
-                  tasks = [];
-                  _loop = /*#__PURE__*/_regeneratorRuntime().mark(function _loop(i, l) {
-                    var file, filename, formData, task;
-                    return _regeneratorRuntime().wrap(function _loop$(_context) {
-                      while (1) {
-                        switch (_context.prev = _context.next) {
-                          case 0:
-                            file = files[i];
+                  options = _args.length > 0 && _args[0] !== undefined ? _args[0] : {};
+                  files = options.files, url = options.url, sucStatus = options.sucStatus, _options$isGenHash = options.isGenHash, isGenHash = _options$isGenHash === void 0 ? false : _options$isGenHash, _options$beforeStart = options.beforeStart, beforeStart = _options$beforeStart === void 0 ? noop : _options$beforeStart, _options$onProgress = options.onProgress, onProgress = _options$onProgress === void 0 ? noop : _options$onProgress, _options$finished = options.finished, finished = _options$finished === void 0 ? noop : _options$finished, _options$failed = options.failed, failed = _options$failed === void 0 ? noop : _options$failed, _options$finally = options["finally"], last = _options$finally === void 0 ? noop : _options$finally;
+                  _context.next = 4;
+                  return genFormDataTasks(files, url, isGenHash, sucStatus, onProgress);
 
-                            if (!generateHash) {
-                              _context.next = 7;
-                              break;
-                            }
+                case 4:
+                  tasks = _context.sent;
+                  beforeStart(); // start uplaod
 
-                            _context.next = 4;
-                            return genHash(file);
-
-                          case 4:
-                            _context.t0 = _context.sent.filename;
-                            _context.next = 8;
-                            break;
-
-                          case 7:
-                            _context.t0 = file.name;
-
-                          case 8:
-                            filename = _context.t0;
-                            formData = new FormData();
-                            formData.append('file', file);
-                            formData.append('filename', filename); // create task
-
-                            task = function task() {
-                              return request({
-                                url: url,
-                                method: 'POST',
-                                data: formData,
-                                onUploadProgress: function onUploadProgress(e) {
-                                  var loaded = e.loaded,
-                                      total = e.total;
-                                  var value = (loaded / total).toFixed(2);
-                                  onProgress(value);
-                                }
-                              }).then(function (response) {
-                                if (response.status == sucStatus) {
-                                  return Promise.resolve(response);
-                                }
-
-                                return Promise.reject(response);
-                              })["catch"](function (e) {
-                                return Promise.reject(e);
-                              });
-                            };
-
-                            tasks.push(task);
-
-                          case 14:
-                          case "end":
-                            return _context.stop();
-                        }
-                      }
-                    }, _loop);
-                  });
-                  i = 0, l = files.length;
-
-                case 5:
-                  if (!(i < l)) {
-                    _context2.next = 10;
-                    break;
-                  }
-
-                  return _context2.delegateYield(_loop(i, l), "t0", 7);
+                  startFormData(tasks, finished, failed, last);
 
                 case 7:
-                  i++;
-                  _context2.next = 5;
-                  break;
-
-                case 10:
-                  beforeStart();
-                  Promise.all(tasks.map(function (task) {
-                    return task();
-                  })).then(function (value) {
-                    return finished(value);
-                  })["catch"](function (reason) {
-                    return failed(reason);
-                  })["finally"](function () {
-                    return last();
-                  });
-
-                case 12:
                 case "end":
-                  return _context2.stop();
+                  return _context.stop();
               }
             }
           }, _callee);
@@ -6180,8 +6401,8 @@
               files,
               url,
               sucStatus,
-              _options$generateHash2,
-              generateHash,
+              _options$isGenHash2,
+              isGenHash,
               _options$beforeStart2,
               beforeStart,
               _options$onProgress2,
@@ -6193,119 +6414,27 @@
               _options$finally2,
               last,
               tasks,
-              _loop2,
-              i,
-              l,
-              _args4 = arguments;
+              _args2 = arguments;
 
-          return _regeneratorRuntime().wrap(function _callee2$(_context4) {
+          return _regeneratorRuntime().wrap(function _callee2$(_context2) {
             while (1) {
-              switch (_context4.prev = _context4.next) {
+              switch (_context2.prev = _context2.next) {
                 case 0:
-                  options = _args4.length > 0 && _args4[0] !== undefined ? _args4[0] : {};
-                  files = options.files, url = options.url, sucStatus = options.sucStatus, _options$generateHash2 = options.generateHash, generateHash = _options$generateHash2 === void 0 ? false : _options$generateHash2, _options$beforeStart2 = options.beforeStart, beforeStart = _options$beforeStart2 === void 0 ? noop : _options$beforeStart2, _options$onProgress2 = options.onProgress, onProgress = _options$onProgress2 === void 0 ? noop : _options$onProgress2, _options$finished2 = options.finished, finished = _options$finished2 === void 0 ? noop : _options$finished2, _options$failed2 = options.failed, failed = _options$failed2 === void 0 ? noop : _options$failed2, _options$finally2 = options["finally"], last = _options$finally2 === void 0 ? noop : _options$finally2;
-                  tasks = [];
-                  _loop2 = /*#__PURE__*/_regeneratorRuntime().mark(function _loop2(i, l) {
-                    var file, filename, base64, task;
-                    return _regeneratorRuntime().wrap(function _loop2$(_context3) {
-                      while (1) {
-                        switch (_context3.prev = _context3.next) {
-                          case 0:
-                            file = files[i];
+                  options = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : {};
+                  files = options.files, url = options.url, sucStatus = options.sucStatus, _options$isGenHash2 = options.isGenHash, isGenHash = _options$isGenHash2 === void 0 ? false : _options$isGenHash2, _options$beforeStart2 = options.beforeStart, beforeStart = _options$beforeStart2 === void 0 ? noop : _options$beforeStart2, _options$onProgress2 = options.onProgress, onProgress = _options$onProgress2 === void 0 ? noop : _options$onProgress2, _options$finished2 = options.finished, finished = _options$finished2 === void 0 ? noop : _options$finished2, _options$failed2 = options.failed, failed = _options$failed2 === void 0 ? noop : _options$failed2, _options$finally2 = options["finally"], last = _options$finally2 === void 0 ? noop : _options$finally2;
+                  _context2.next = 4;
+                  return genBase64Tasks(files, url, isGenHash, sucStatus, onProgress);
 
-                            if (!generateHash) {
-                              _context3.next = 7;
-                              break;
-                            }
-
-                            _context3.next = 4;
-                            return genHash(file);
-
-                          case 4:
-                            _context3.t0 = _context3.sent.filename;
-                            _context3.next = 8;
-                            break;
-
-                          case 7:
-                            _context3.t0 = file.name;
-
-                          case 8:
-                            filename = _context3.t0;
-                            _context3.next = 11;
-                            return img2Base64(file);
-
-                          case 11:
-                            base64 = _context3.sent;
-
-                            task = function task() {
-                              return request({
-                                url: url,
-                                method: 'POST',
-                                data: {
-                                  file: encodeURIComponent(base64),
-                                  filename: filename
-                                },
-                                headers: {
-                                  post: {
-                                    'Content-Type': 'application/x-www-form-urlencoded'
-                                  }
-                                },
-                                onUploadProgress: function onUploadProgress(e) {
-                                  var loaded = e.loaded,
-                                      total = e.total;
-                                  var value = (loaded / total).toFixed(2);
-                                  onProgress(value);
-                                }
-                              }).then(function (response) {
-                                if (response.status == sucStatus) {
-                                  return Promise.resolve(response);
-                                }
-
-                                return Promise.reject(response);
-                              })["catch"](function (e) {
-                                Promise.reject(e);
-                              });
-                            };
-
-                            tasks.push(task);
-
-                          case 14:
-                          case "end":
-                            return _context3.stop();
-                        }
-                      }
-                    }, _loop2);
-                  });
-                  i = 0, l = files.length;
-
-                case 5:
-                  if (!(i < l)) {
-                    _context4.next = 10;
-                    break;
-                  }
-
-                  return _context4.delegateYield(_loop2(i, l), "t0", 7);
-
-                case 7:
-                  i++;
-                  _context4.next = 5;
-                  break;
-
-                case 10:
+                case 4:
+                  tasks = _context2.sent;
                   beforeStart();
-                  Promise.all(tasks.map(function (task) {
-                    return task();
-                  })).then(function (value) {
-                    return finished(value);
-                  })["catch"](function (reason) {
-                    return failed(reason);
-                  })["finally"](function () {
-                    return last();
-                  });
+                  console.log(tasks); // start upload
 
-                case 12:
+                  startBase64(tasks, finished, failed, last);
+
+                case 8:
                 case "end":
-                  return _context4.stop();
+                  return _context2.stop();
               }
             }
           }, _callee2);
@@ -6353,27 +6482,27 @@
               formattedSliceCount,
               slices,
               tasks,
-              _args5 = arguments;
+              _args3 = arguments;
 
-          return _regeneratorRuntime().wrap(function _callee3$(_context5) {
+          return _regeneratorRuntime().wrap(function _callee3$(_context3) {
             while (1) {
-              switch (_context5.prev = _context5.next) {
+              switch (_context3.prev = _context3.next) {
                 case 0:
-                  options = _args5.length > 0 && _args5[0] !== undefined ? _args5[0] : {};
+                  options = _args3.length > 0 && _args3[0] !== undefined ? _args3[0] : {};
                   files = options.files, url = options.url, uploadedAPI = options.uploadedAPI, mergeAPI = options.mergeAPI, name = options.name, sucStatus = options.sucStatus, _options$sliceLimit = options.sliceLimit, sliceLimit = _options$sliceLimit === void 0 ? 100 : _options$sliceLimit, _options$sliceSize = options.sliceSize, sliceSize = _options$sliceSize === void 0 ? 10 * 1024 * 1024 : _options$sliceSize, _options$beforeStart3 = options.beforeStart, beforeStart = _options$beforeStart3 === void 0 ? noop : _options$beforeStart3, _options$onProgress3 = options.onProgress, onProgress = _options$onProgress3 === void 0 ? noop : _options$onProgress3, _options$finished3 = options.finished, finished = _options$finished3 === void 0 ? noop : _options$finished3, _options$failed3 = options.failed, failed = _options$failed3 === void 0 ? noop : _options$failed3, _options$finally3 = options["finally"], last = _options$finally3 === void 0 ? noop : _options$finally3;
                   file = files[0];
-                  _context5.next = 5;
+                  _context3.next = 5;
                   return genHash(file);
 
                 case 5:
-                  _yield$genHash = _context5.sent;
+                  _yield$genHash = _context3.sent;
                   hash = _yield$genHash.hash;
                   suffix = _yield$genHash.suffix;
-                  _context5.next = 10;
+                  _context3.next = 10;
                   return getUploadedSlices(uploadedAPI, hash, name);
 
                 case 10:
-                  uploadedSlices = _context5.sent;
+                  uploadedSlices = _context3.sent;
                   // generate uploaded slices map for exclude uploaded slices
                   uploadedSlicesMap = genUploadedSlicesMap(uploadedSlices); // format slice size and slice count because slice count may be greater
                   // than slice limit
@@ -6382,17 +6511,17 @@
 
                   slices = genSlices(file, uploadedSlicesMap, formattedSliceSize, formattedSliceCount, hash, suffix, onProgress); // generate tasks
 
-                  tasks = genTasks(slices, url, sucStatus);
+                  tasks = genSliceTasks(slices, url, sucStatus);
                   beforeStart();
 
                   if (!tasks.length) {
-                    _context5.next = 19;
+                    _context3.next = 19;
                     break;
                   }
 
                   // start upload
                   start(tasks, mergeAPI, hash, formattedSliceCount, sucStatus, finished, failed, last);
-                  return _context5.abrupt("return");
+                  return _context3.abrupt("return");
 
                 case 19:
                   // all slices have been uploaded, just need to merge them.
@@ -6400,7 +6529,7 @@
 
                 case 20:
                 case "end":
-                  return _context5.stop();
+                  return _context3.stop();
               }
             }
           }, _callee3);

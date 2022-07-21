@@ -8,7 +8,7 @@ const start = (
     .all(tasks.map(task => task()))
     .then(async () => {
 
-      // merge slices
+      // all tasks have been done, merge slices.
       const response = await merge(mergeAPI, hash, sliceCount, sucStatus)
       
       if (response.status == sucStatus) {
