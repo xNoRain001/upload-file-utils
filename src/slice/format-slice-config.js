@@ -8,14 +8,14 @@ const formatSliceConfig = (file, sliceSize, sliceLimit) => {
     sliceSize = size / sliceLimit
 
     return {
-      sliceSize,
-      sliceLimit // slice count equal slice limit
+      formattedSliceSize: sliceSize,
+      formattedSliceCount: sliceLimit // slice count equal slice limit
     }
   }
 
   return {
-    sliceSize,
-    sliceCount
+    formattedSliceSize: sliceSize,
+    formattedSliceCount: sliceCount
   }
 }
 

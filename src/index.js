@@ -1,5 +1,18 @@
-import request from './request/index'
-import { noop, img2Base64, genHash, getUploadedSlices, genUploadedSlicesMap, formatSliceConfig } from './utils'
+import request from './request'
+import { 
+  noop, 
+  img2Base64, 
+  genHash
+} from './utils'
+import { 
+  getUploadedSlices, 
+  genUploadedSlicesMap, 
+  formatSliceConfig, 
+  genSlices,
+  genTasks,
+  start,
+  merge
+} from './slice'
 
 class Uploader {
   async formData (options = {}) {
@@ -34,8 +47,9 @@ class Uploader {
           data: formData,
           onUploadProgress (e) {
             const { loaded, total } = e
+            const value = (loaded / total).toFixed(2)
 
-            onProgress(loaded, total)
+            onProgress(value)
           },
         })
           .then(response => {
@@ -95,8 +109,9 @@ class Uploader {
           },
           onUploadProgress (e) {
             const { loaded, total } = e
+            const value = (loaded / total).toFixed(2)
 
-            onProgress(loaded, total)
+            onProgress(value)
           },
         })
           .then(response => {
@@ -127,12 +142,12 @@ class Uploader {
     const {
       files,
       url,
-      api,
+      uploadedAPI,
+      mergeAPI,
       name,
       sucStatus,
-      generateHash = false,
-      sliceLimit,
-      sliceSize = 1 * 1024 * 1024,
+      sliceLimit = 100,
+      sliceSize = 10 * 1024 * 1024,
       beforeStart = noop, 
       onProgress = noop,
       finished = noop, 
@@ -144,78 +159,41 @@ class Uploader {
     const { hash, suffix } = await genHash(file)
 
     // get uploaded slices by hash
-    const uploadedSlices = getUploadedSlices(api, hash, name)
+    const uploadedSlices = await getUploadedSlices(uploadedAPI, hash, name)
 
     // generate uploaded slices map for exclude uploaded slices
     const uploadedSlicesMap = genUploadedSlicesMap(uploadedSlices)
 
     // format slice size and slice count because slice count may be greater
     // than slice limit
-    ({ sliceSize, sliceCount } = formatSliceConfig(file, sliceSize, sliceLimit))
+    const { 
+      formattedSliceSize, formattedSliceCount
+    } = formatSliceConfig(file, sliceSize, sliceLimit)
 
-    // slices to be uploaded 
-    const slices = []
+    // generate slices that to be uploaded 
+    const slices = genSlices(
+      file, uploadedSlicesMap, formattedSliceSize, 
+      formattedSliceCount, hash, suffix, onProgress
+    )
 
-    // generate slices
-    let index = 0
-    while (index < sliceCount) {
-      const slice = file.slice(sliceSize * index, sliceSize * (index + 1))
-      const filename =`${ hash }_${ index + 1 }${ suffix }`
+    // generate tasks
+    const tasks = genTasks(slices, url, sucStatus)
+
+    beforeStart()
+
+    if (tasks.length) {
+
+      // start upload
+      start(
+        tasks, mergeAPI, hash, formattedSliceCount, sucStatus,
+        finished, failed, last
+      )
       
-      index++
-
-      // Slices that already exist on the server
-      if (uploadedSlicesMap[filename]) {
-        onProgress()
-
-        return
-      }
-
-
-      slices.push({
-        file: slice,
-        filename
-      })
+      return
     }
 
-    const tasks = []
-
-    for (let i = 0, l = slices.length; i < l; i++) {
-      const { file, filename } = slices[i]
-      const formData = new FormData()
-
-      formData.append('file', file)
-      formData.append('filename', filename)
-
-      tasks.push(() => {
-        request({
-          url,
-          method: 'POST',
-          data: formData
-        })
-          .then(response => {
-            if (response.status == 200) {
-              onProgress()
-  
-              return Promise.resolve(response)
-            }
-  
-            return Promise.reject(response)
-          })
-          .catch(e => Promise.reject(e))
-      })
-    }
-
-    console.log(tasks, '@')
-
-
-    // beforeStart()
-
-    // Promise
-    //   .all(tasks.map(task => task()))
-    //   .then(value => finished(value))
-    //   .catch(reason => failed(reason))
-    //   .finally(() => last())
+    // all slices have been uploaded, just need to merge them.
+    merge(mergeAPI, hash, formattedSliceCount, sucStatus)
   }
 }
 

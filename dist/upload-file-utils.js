@@ -414,10 +414,6 @@
     return Constructor;
   }
 
-  function _readOnlyError(name) {
-    throw new TypeError("\"" + name + "\" is read-only");
-  }
-
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
   function unwrapExports (x) {
@@ -4166,7 +4162,7 @@
       return obj;
   };
 
-  var merge = function merge(target, source, options) {
+  var merge$1 = function merge(target, source, options) {
       /* eslint no-param-reassign: 0 */
       if (!source) {
           return target;
@@ -4370,7 +4366,7 @@
       isBuffer: isBuffer,
       isRegExp: isRegExp,
       maybeMap: maybeMap,
-      merge: merge
+      merge: merge$1
   };
 
   var has$1 = Object.prototype.hasOwnProperty;
@@ -5719,76 +5715,92 @@
     });
   };
 
-  var genHash = /*#__PURE__*/function () {
-    var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(file) {
-      var suffix, buffer, spark, hash;
-      return _regeneratorRuntime().wrap(function _callee$(_context) {
-        while (1) {
-          switch (_context.prev = _context.next) {
-            case 0:
-              suffix = /\.([a-zA-Z0-9]+)$/.exec(file.name)[0];
-              _context.next = 3;
-              return file2Buffer(file);
+  var genHash = function genHash(file) {
+    return new Promise( /*#__PURE__*/function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(resolve, reject) {
+        var suffix, buffer, spark, hash;
+        return _regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.prev = 0;
+                suffix = /\.([a-zA-Z0-9]+)$/.exec(file.name)[0];
+                _context.next = 4;
+                return file2Buffer(file);
 
-            case 3:
-              buffer = _context.sent;
-              spark = new sparkMd5.ArrayBuffer();
-              spark.append(buffer);
-              hash = spark.end();
-              return _context.abrupt("return", {
-                hash: hash,
-                suffix: suffix,
-                filename: "".concat(hash).concat(suffix)
-              });
+              case 4:
+                buffer = _context.sent;
+                spark = new sparkMd5.ArrayBuffer();
+                hash = spark.append(buffer).end();
+                return _context.abrupt("return", resolve({
+                  hash: hash,
+                  suffix: suffix,
+                  filename: "".concat(hash).concat(suffix)
+                }));
 
-            case 8:
-            case "end":
-              return _context.stop();
+              case 10:
+                _context.prev = 10;
+                _context.t0 = _context["catch"](0);
+                reject(_context.t0);
+
+              case 13:
+              case "end":
+                return _context.stop();
+            }
           }
-        }
-      }, _callee);
-    }));
+        }, _callee, null, [[0, 10]]);
+      }));
 
-    return function genHash(_x) {
-      return _ref.apply(this, arguments);
-    };
-  }();
+      return function (_x, _x2) {
+        return _ref.apply(this, arguments);
+      };
+    }());
+  };
 
-  var getUploadedSlices = /*#__PURE__*/function () {
-    var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(api, hash, name) {
-      var _yield$request, data, uploadedSlices;
+  var getUploadedSlices = function getUploadedSlices(uploadedAPI, hash, name) {
+    return new Promise( /*#__PURE__*/function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(resolve, reject) {
+        var _yield$request, data, uploadedSlices;
 
-      return _regeneratorRuntime().wrap(function _callee$(_context) {
-        while (1) {
-          switch (_context.prev = _context.next) {
-            case 0:
-              _context.next = 2;
-              return request({
-                url: api,
-                method: 'GET',
-                params: {
-                  HASH: hash
-                }
-              });
+        return _regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.prev = 0;
+                _context.next = 3;
+                return request({
+                  url: uploadedAPI,
+                  params: {
+                    HASH: hash
+                  }
+                });
 
-            case 2:
-              _yield$request = _context.sent;
-              data = _yield$request.data;
-              uploadedSlices = data[name];
-              return _context.abrupt("return", uploadedSlices);
+              case 3:
+                _yield$request = _context.sent;
+                data = _yield$request.data;
+                uploadedSlices = data[name];
+                resolve(uploadedSlices);
+                _context.next = 12;
+                break;
 
-            case 6:
-            case "end":
-              return _context.stop();
+              case 9:
+                _context.prev = 9;
+                _context.t0 = _context["catch"](0);
+                reject(_context.t0);
+
+              case 12:
+              case "end":
+                return _context.stop();
+            }
           }
-        }
-      }, _callee);
-    }));
+        }, _callee, null, [[0, 9]]);
+      }));
 
-    return function getUploadedSlices(_x, _x2, _x3) {
-      return _ref.apply(this, arguments);
-    };
-  }();
+      return function (_x, _x2) {
+        return _ref.apply(this, arguments);
+      };
+    }());
+  };
 
   var genUploadedSlicesMap = function genUploadedSlicesMap(uploadedSlices) {
     var uploadedSlicesMap = {};
@@ -5800,6 +5812,108 @@
     return uploadedSlicesMap;
   };
 
+  var genSlices = function genSlices(file, uploadedSlicesMap, sliceSize, sliceCount, hash, suffix, onProgress) {
+    var slices = [];
+    var index = 0;
+
+    while (index < sliceCount) {
+      var slice = file.slice(sliceSize * index, sliceSize * (index + 1));
+      var filename = "".concat(hash, "_").concat(index + 1).concat(suffix);
+      index++; // Slices that already exist on the server
+
+      if (uploadedSlicesMap[filename]) {
+        onProgress();
+        continue;
+      }
+
+      slices.push({
+        file: slice,
+        filename: filename
+      });
+    }
+
+    return slices;
+  };
+
+  var genTasks = function genTasks(slices, url, sucStatus) {
+    var tasks = [];
+
+    var _loop = function _loop(i, l) {
+      var _slices$i = slices[i],
+          file = _slices$i.file,
+          filename = _slices$i.filename;
+      var formData = new FormData();
+      formData.append('file', file);
+      formData.append('filename', filename);
+      tasks.push( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
+        return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                return _context2.abrupt("return", new Promise( /*#__PURE__*/function () {
+                  var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(resolve, reject) {
+                    var response;
+                    return _regeneratorRuntime().wrap(function _callee$(_context) {
+                      while (1) {
+                        switch (_context.prev = _context.next) {
+                          case 0:
+                            _context.prev = 0;
+                            _context.next = 3;
+                            return request({
+                              url: url,
+                              method: 'POST',
+                              data: formData
+                            });
+
+                          case 3:
+                            response = _context.sent;
+
+                            if (!(response.status == sucStatus)) {
+                              _context.next = 6;
+                              break;
+                            }
+
+                            return _context.abrupt("return", resolve(response));
+
+                          case 6:
+                            reject(response);
+                            _context.next = 12;
+                            break;
+
+                          case 9:
+                            _context.prev = 9;
+                            _context.t0 = _context["catch"](0);
+                            reject(_context.t0);
+
+                          case 12:
+                          case "end":
+                            return _context.stop();
+                        }
+                      }
+                    }, _callee, null, [[0, 9]]);
+                  }));
+
+                  return function (_x, _x2) {
+                    return _ref2.apply(this, arguments);
+                  };
+                }()));
+
+              case 1:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2);
+      })));
+    };
+
+    for (var i = 0, l = slices.length; i < l; i++) {
+      _loop(i);
+    }
+
+    return tasks;
+  };
+
   var formatSliceConfig = function formatSliceConfig(file, sliceSize, sliceLimit) {
     var size = file.size;
     var sliceCount = Math.ceil(size / sliceSize);
@@ -5808,16 +5922,114 @@
       // format slice size
       sliceSize = size / sliceLimit;
       return {
-        sliceSize: sliceSize,
-        sliceLimit: sliceLimit // slice count equal slice limit
+        formattedSliceSize: sliceSize,
+        formattedSliceCount: sliceLimit // slice count equal slice limit
 
       };
     }
 
     return {
-      sliceSize: sliceSize,
-      sliceCount: sliceCount
+      formattedSliceSize: sliceSize,
+      formattedSliceCount: sliceCount
     };
+  };
+
+  var merge = function merge(mergeAPI, hash, sliceCount, sucStatus) {
+    return new Promise( /*#__PURE__*/function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(resolve, reject) {
+        var response;
+        return _regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.prev = 0;
+                _context.next = 3;
+                return request({
+                  url: mergeAPI,
+                  method: 'POST',
+                  data: {
+                    HASH: hash,
+                    count: sliceCount
+                  },
+                  headers: {
+                    post: {
+                      'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                  }
+                });
+
+              case 3:
+                response = _context.sent;
+
+                if (!(response.status == sucStatus)) {
+                  _context.next = 7;
+                  break;
+                }
+
+                resolve(response);
+                return _context.abrupt("return");
+
+              case 7:
+                reject(response);
+                _context.next = 13;
+                break;
+
+              case 10:
+                _context.prev = 10;
+                _context.t0 = _context["catch"](0);
+                reject(_context.t0);
+
+              case 13:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, null, [[0, 10]]);
+      }));
+
+      return function (_x, _x2) {
+        return _ref.apply(this, arguments);
+      };
+    }());
+  };
+
+  var start = function start(tasks, mergeAPI, hash, sliceCount, sucStatus, finished, failed, last) {
+    Promise.all(tasks.map(function (task) {
+      return task();
+    })).then( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
+      var response;
+      return _regeneratorRuntime().wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              _context.next = 2;
+              return merge(mergeAPI, hash, sliceCount, sucStatus);
+
+            case 2:
+              response = _context.sent;
+
+              if (!(response.status == sucStatus)) {
+                _context.next = 6;
+                break;
+              }
+
+              finished(response);
+              return _context.abrupt("return");
+
+            case 6:
+              failed(response);
+
+            case 7:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee);
+    })))["catch"](function (reason) {
+      return failed(reason);
+    })["finally"](function () {
+      return last();
+    });
   };
 
   var Uploader = /*#__PURE__*/function () {
@@ -5896,7 +6108,8 @@
                                 onUploadProgress: function onUploadProgress(e) {
                                   var loaded = e.loaded,
                                       total = e.total;
-                                  onProgress(loaded, total);
+                                  var value = (loaded / total).toFixed(2);
+                                  onProgress(value);
                                 }
                               }).then(function (response) {
                                 if (response.status == sucStatus) {
@@ -6040,7 +6253,8 @@
                                 onUploadProgress: function onUploadProgress(e) {
                                   var loaded = e.loaded,
                                       total = e.total;
-                                  onProgress(loaded, total);
+                                  var value = (loaded / total).toFixed(2);
+                                  onProgress(value);
                                 }
                               }).then(function (response) {
                                 if (response.status == sucStatus) {
@@ -6110,27 +6324,35 @@
           var options,
               files,
               url,
-              api,
+              uploadedAPI,
+              mergeAPI,
               name,
+              sucStatus,
+              _options$sliceLimit,
               sliceLimit,
               _options$sliceSize,
               sliceSize,
+              _options$beforeStart3,
+              beforeStart,
               _options$onProgress3,
               onProgress,
+              _options$finished3,
+              finished,
+              _options$failed3,
+              failed,
+              _options$finally3,
+              last,
               file,
               _yield$genHash,
               hash,
               suffix,
               uploadedSlices,
               uploadedSlicesMap,
+              _formatSliceConfig,
+              formattedSliceSize,
+              formattedSliceCount,
               slices,
-              index,
-              _slice2,
-              _filename,
               tasks,
-              _loop3,
-              i,
-              l,
               _args5 = arguments;
 
           return _regeneratorRuntime().wrap(function _callee3$(_context5) {
@@ -6138,7 +6360,7 @@
               switch (_context5.prev = _context5.next) {
                 case 0:
                   options = _args5.length > 0 && _args5[0] !== undefined ? _args5[0] : {};
-                  files = options.files, url = options.url, api = options.api, name = options.name, options.sucStatus, options.generateHash, sliceLimit = options.sliceLimit, _options$sliceSize = options.sliceSize, sliceSize = _options$sliceSize === void 0 ? 1 * 1024 * 1024 : _options$sliceSize, options.beforeStart, _options$onProgress3 = options.onProgress, onProgress = _options$onProgress3 === void 0 ? noop : _options$onProgress3, options.finished, options.failed, options["finally"];
+                  files = options.files, url = options.url, uploadedAPI = options.uploadedAPI, mergeAPI = options.mergeAPI, name = options.name, sucStatus = options.sucStatus, _options$sliceLimit = options.sliceLimit, sliceLimit = _options$sliceLimit === void 0 ? 100 : _options$sliceLimit, _options$sliceSize = options.sliceSize, sliceSize = _options$sliceSize === void 0 ? 10 * 1024 * 1024 : _options$sliceSize, _options$beforeStart3 = options.beforeStart, beforeStart = _options$beforeStart3 === void 0 ? noop : _options$beforeStart3, _options$onProgress3 = options.onProgress, onProgress = _options$onProgress3 === void 0 ? noop : _options$onProgress3, _options$finished3 = options.finished, finished = _options$finished3 === void 0 ? noop : _options$finished3, _options$failed3 = options.failed, failed = _options$failed3 === void 0 ? noop : _options$failed3, _options$finally3 = options["finally"], last = _options$finally3 === void 0 ? noop : _options$finally3;
                   file = files[0];
                   _context5.next = 5;
                   return genHash(file);
@@ -6147,83 +6369,36 @@
                   _yield$genHash = _context5.sent;
                   hash = _yield$genHash.hash;
                   suffix = _yield$genHash.suffix;
-                  // get uploaded slices by hash
-                  uploadedSlices = getUploadedSlices(api, hash, name); // generate uploaded slices map for exclude uploaded slices
+                  _context5.next = 10;
+                  return getUploadedSlices(uploadedAPI, hash, name);
 
-                  uploadedSlicesMap = genUploadedSlicesMap(uploadedSlices) // format slice size and slice count because slice count may be greater
+                case 10:
+                  uploadedSlices = _context5.sent;
+                  // generate uploaded slices map for exclude uploaded slices
+                  uploadedSlicesMap = genUploadedSlicesMap(uploadedSlices); // format slice size and slice count because slice count may be greater
                   // than slice limit
-                  ((formatSliceConfig(file, sliceSize, sliceLimit), _readOnlyError("sliceSize"))); // slices to be uploaded 
 
-                  slices = []; // generate slices
+                  _formatSliceConfig = formatSliceConfig(file, sliceSize, sliceLimit), formattedSliceSize = _formatSliceConfig.formattedSliceSize, formattedSliceCount = _formatSliceConfig.formattedSliceCount; // generate slices that to be uploaded 
 
-                  index = 0;
+                  slices = genSlices(file, uploadedSlicesMap, formattedSliceSize, formattedSliceCount, hash, suffix, onProgress); // generate tasks
 
-                case 12:
-                  if (!(index < sliceCount)) {
-                    _context5.next = 22;
-                    break;
-                  }
+                  tasks = genTasks(slices, url, sucStatus);
+                  beforeStart();
 
-                  _slice2 = file.slice(sliceSize * index, sliceSize * (index + 1));
-                  _filename = "".concat(hash, "_").concat(index + 1).concat(suffix);
-                  index++; // Slices that already exist on the server
-
-                  if (!uploadedSlicesMap[_filename]) {
+                  if (!tasks.length) {
                     _context5.next = 19;
                     break;
                   }
 
-                  onProgress();
+                  // start upload
+                  start(tasks, mergeAPI, hash, formattedSliceCount, sucStatus, finished, failed, last);
                   return _context5.abrupt("return");
 
                 case 19:
-                  slices.push({
-                    file: _slice2,
-                    filename: _filename
-                  });
-                  _context5.next = 12;
-                  break;
+                  // all slices have been uploaded, just need to merge them.
+                  merge(mergeAPI, hash, formattedSliceCount, sucStatus);
 
-                case 22:
-                  tasks = [];
-
-                  _loop3 = function _loop3(i, l) {
-                    var _slices$i = slices[i],
-                        file = _slices$i.file,
-                        filename = _slices$i.filename;
-                    var formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('filename', filename);
-                    tasks.push(function () {
-                      request({
-                        url: url,
-                        method: 'POST',
-                        data: formData
-                      }).then(function (response) {
-                        if (response.status == 200) {
-                          onProgress();
-                          return Promise.resolve(response);
-                        }
-
-                        return Promise.reject(response);
-                      })["catch"](function (e) {
-                        return Promise.reject(e);
-                      });
-                    });
-                  };
-
-                  for (i = 0, l = slices.length; i < l; i++) {
-                    _loop3(i, l);
-                  }
-
-                  console.log(tasks, '@'); // beforeStart()
-                  // Promise
-                  //   .all(tasks.map(task => task()))
-                  //   .then(value => finished(value))
-                  //   .catch(reason => failed(reason))
-                  //   .finally(() => last())
-
-                case 26:
+                case 20:
                 case "end":
                   return _context5.stop();
               }
